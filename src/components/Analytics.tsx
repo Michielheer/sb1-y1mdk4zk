@@ -1,13 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { BarChart2, PieChart, TrendingUp, Users } from 'lucide-react';
-import { supabase } from '../lib/supabaseClient';
+import { BarChart2, PieChart, TrendingUp } from 'lucide-react';
+
+// Mock data for demonstration - replace with actual API calls
+const mockData = {
+  sent: 1250,
+  clicks: 325,
+  recentClicks: [
+    {
+      id: 1,
+      recipient: { name: 'John Doe', email: 'john@example.com' },
+      campaign: { subject: 'Welcome Email' },
+      link_clicked: 'https://example.com/welcome',
+      created_at: '2024-02-11T10:30:00Z'
+    },
+    // Add more mock data as needed
+  ]
+};
 
 export default function Analytics() {
   const [stats, setStats] = useState({
     totalSent: 0,
     openRate: '0%',
-    clickRate: '0%',
-    totalRecipients: 0
+    clickRate: '0%'
   });
 
   const [recentClicks, setRecentClicks] = useState([]);
@@ -19,30 +33,15 @@ export default function Analytics() {
 
   const fetchStats = async () => {
     try {
-      // Get total sent emails
-      const { count: sentCount } = await supabase
-        .from('email_events')
-        .select('*', { count: 'exact' })
-        .eq('event_type', 'sent');
-
-      // Get total clicks
-      const { count: clickCount } = await supabase
-        .from('email_events')
-        .select('*', { count: 'exact' })
-        .eq('event_type', 'clicked');
-
-      // Get total recipients
-      const { count: recipientCount } = await supabase
-        .from('recipients')
-        .select('*', { count: 'exact' });
-
+      // Replace with actual API call
+      const sentCount = mockData.sent;
+      const clickCount = mockData.clicks;
       const clickRate = sentCount ? Math.round((clickCount / sentCount) * 100) : 0;
 
       setStats({
-        totalSent: sentCount || 0,
+        totalSent: sentCount,
         openRate: '0%', // Implement if you add open tracking
-        clickRate: `${clickRate}%`,
-        totalRecipients: recipientCount || 0
+        clickRate: `${clickRate}%`
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -51,19 +50,8 @@ export default function Analytics() {
 
   const fetchRecentClicks = async () => {
     try {
-      const { data, error } = await supabase
-        .from('email_events')
-        .select(`
-          *,
-          campaigns (subject),
-          recipients (name, email)
-        `)
-        .eq('event_type', 'clicked')
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      setRecentClicks(data);
+      // Replace with actual API call
+      setRecentClicks(mockData.recentClicks);
     } catch (error) {
       console.error('Error fetching recent clicks:', error);
     }
@@ -73,14 +61,13 @@ export default function Analytics() {
     { name: 'Total Sent', value: stats.totalSent.toString(), icon: BarChart2 },
     { name: 'Open Rate', value: stats.openRate, icon: PieChart },
     { name: 'Click Rate', value: stats.clickRate, icon: TrendingUp },
-    { name: 'Recipients', value: stats.totalRecipients.toString(), icon: Users },
   ];
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Campaign Analytics</h2>
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         {displayStats.map((stat) => (
           <div
             key={stat.name}
@@ -120,13 +107,13 @@ export default function Analytics() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {recentClicks.map((click: any) => (
+              {recentClicks.map((click) => (
                 <tr key={click.id}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {click.recipients?.name} ({click.recipients?.email})
+                    {click.recipient.name} ({click.recipient.email})
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {click.campaigns?.subject}
+                    {click.campaign.subject}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {click.link_clicked}
