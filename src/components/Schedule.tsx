@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Pencil, Trash2 } from 'lucide-react';
 
 export default function Planning() {
   const [campagnes, setCampagnes] = useState([
@@ -18,6 +18,8 @@ export default function Planning() {
     geplandeTijd: '',
   });
 
+  const [editingCampagne, setEditingCampagne] = useState(null);
+
   const handleCampagnePlannen = () => {
     if (nieuweCampagne.naam && nieuweCampagne.geplandeDatum && nieuweCampagne.geplandeTijd) {
       setCampagnes([
@@ -32,12 +34,46 @@ export default function Planning() {
     }
   };
 
+  const handleEdit = (campagne) => {
+    setEditingCampagne(campagne);
+    setNieuweCampagne({
+      naam: campagne.naam,
+      geplandeDatum: campagne.geplandeDatum,
+      geplandeTijd: campagne.geplandeTijd,
+    });
+  };
+
+  const handleUpdate = () => {
+    if (editingCampagne && nieuweCampagne.naam && nieuweCampagne.geplandeDatum && nieuweCampagne.geplandeTijd) {
+      setCampagnes(campagnes.map(c => 
+        c.id === editingCampagne.id 
+          ? { ...c, ...nieuweCampagne }
+          : c
+      ));
+      setNieuweCampagne({ naam: '', geplandeDatum: '', geplandeTijd: '' });
+      setEditingCampagne(null);
+    }
+  };
+
+  const handleDelete = (id) => {
+    if (window.confirm('Weet je zeker dat je deze campagne wilt verwijderen?')) {
+      setCampagnes(campagnes.filter(c => c.id !== id));
+    }
+  };
+
+  const handleCancel = () => {
+    setNieuweCampagne({ naam: '', geplandeDatum: '', geplandeTijd: '' });
+    setEditingCampagne(null);
+  };
+
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Campagne Planning</h2>
 
       <div className="mb-8">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Nieuwe Campagne Inplannen</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          {editingCampagne ? 'Campagne Bewerken' : 'Nieuwe Campagne Inplannen'}
+        </h3>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <input
             type="text"
@@ -65,12 +101,31 @@ export default function Planning() {
             />
           </div>
         </div>
-        <button
-          onClick={handleCampagnePlannen}
-          className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Campagne Inplannen
-        </button>
+        <div className="mt-4 space-x-4">
+          {editingCampagne ? (
+            <>
+              <button
+                onClick={handleUpdate}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Wijzigingen Opslaan
+              </button>
+              <button
+                onClick={handleCancel}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                Annuleren
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={handleCampagnePlannen}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Campagne Inplannen
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="mt-8">
@@ -91,6 +146,9 @@ export default function Planning() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Status
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Acties
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -109,6 +167,22 @@ export default function Planning() {
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                       {campagne.status}
                     </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <div className="flex space-x-4">
+                      <button
+                        onClick={() => handleEdit(campagne)}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        <Pencil className="h-5 w-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(campagne.id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
